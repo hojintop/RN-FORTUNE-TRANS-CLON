@@ -18,5 +18,7 @@ export const useFortune = () => {
 
     return{
         fortuneKey,
+        setFortuneKey,
+        getRandomFortuneKey,
     }
 }

@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import LottieView from "lottie-react-native";
@@ -16,8 +16,9 @@ SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const { t, locale, setLocale, format } = useTranslation();
-  const { fortuneKey } = useFortune();
+  const { fortuneKey, setFortuneKey, getRandomFortuneKey } = useFortune();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState();
 
   const year = dayjs().year();
   const mon = dayjs().month() + 1;
@@ -41,6 +42,19 @@ export default function App() {
     }
   }, [isLoaded, fontsLoaded]);
 
+  function onRefresh(){
+    setIsRefreshing(true);
+  }
+
+  useEffect(()=> {
+    if(isRefreshing){
+      setFortuneKey(getRandomFortuneKey);
+    }
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 500);
+  },[isRefreshing])
+
   if (fortuneKey === "") return <LoadingView />;
 
   return (
@@ -63,12 +77,18 @@ export default function App() {
       {/* 본문 */}
       <SafeAreaView
         style={styles.container}
-        edges={["bottom", "left", "right"]}
+        edges={["top","bottom", "left", "right"]}
       >
-        
-        <Text style={styles.title_text_day}>{todayText}</Text>
-        <Text style={styles.title_text}>{t(fortuneKey)}</Text>
-        
+
+        <ScrollView
+          contentContainerStyle={{flex: 1, justifyContent: 'center', alignItems: 'center',}}
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={"lightblue"}/>}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.title_text_day}>{todayText}</Text>
+          <Text style={styles.title_text}>{t(fortuneKey)}</Text>
+        </ScrollView>
+
       </SafeAreaView>
       <Button islocale={locale} setIslocale={setLocale} />
     </SafeAreaProvider>
@@ -84,7 +104,7 @@ const styles = StyleSheet.create({
   title_text_day: {
     fontFamily: "RIDIBatang",
     position: 'absolute',
-    top:150,
+    top:100,
     color: "gray",
     fontWeight: "bold",
     fontSize: 20,
